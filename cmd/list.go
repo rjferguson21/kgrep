@@ -12,6 +12,8 @@ import (
 
 func init() {
 	listCmd.Flags().Bool("summary", false, "use summary list")
+	listCmd.Flags().String("kind", "", "query by kind")
+	listCmd.Flags().String("name", "", "query by name")
 	rootCmd.AddCommand(listCmd)
 }
 
@@ -19,17 +21,35 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List the version number of Hugo",
 	Long:  `All software has versions. This is Hugo's`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		List(cmd, args)
 	},
 }
 
 func List(cmd *cobra.Command, args []string) {
+	name, err := cmd.Flags().GetString("name")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	summary, err := cmd.Flags().GetBool("summary")
-	query := args[0]
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	kind, err := cmd.Flags().GetString("kind")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	path := args[0]
 
 	input := kio.LocalPackageReader{
-		PackagePath:       ".",
+		PackagePath:       path,
 		MatchFilesGlob:    []string{"*.yaml"},
 		PreserveSeqIndent: true,
 		WrapBareSeqNode:   true,
@@ -37,8 +57,15 @@ func List(cmd *cobra.Command, args []string) {
 
 	fltrs := []kio.Filter{&filters.GrepFilter{
 		Path:  []string{"metadata", "name"},
-		Value: query,
+		Value: name,
 	}}
+
+	if kind != "" {
+		fltrs = append(fltrs, &filters.GrepFilter{
+			Path:  []string{"kind"},
+			Value: kind,
+		})
+	}
 
 	var outputs []kio.Writer
 
