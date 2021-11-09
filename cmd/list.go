@@ -21,7 +21,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List the version number of Hugo",
 	Long:  `All software has versions. This is Hugo's`,
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		List(cmd, args)
 	},
@@ -46,13 +46,17 @@ func List(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	path := args[0]
+	var input kio.Reader
 
-	input := kio.LocalPackageReader{
-		PackagePath:       path,
-		MatchFilesGlob:    []string{"*.yaml"},
-		PreserveSeqIndent: true,
-		WrapBareSeqNode:   true,
+	if len(args) == 0 {
+		input = &kio.ByteReader{Reader: cmd.InOrStdin()}
+	} else {
+		input = kio.LocalPackageReader{
+			PackagePath:       args[0],
+			MatchFilesGlob:    []string{"*.yaml"},
+			PreserveSeqIndent: true,
+			WrapBareSeqNode:   true,
+		}
 	}
 
 	fltrs := []kio.Filter{&filters.GrepFilter{
