@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/rjferguson21/kpretty/prettywriter"
 	"github.com/rjferguson21/kpretty/printwriter"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/kio"
@@ -79,7 +80,10 @@ func List(cmd *cobra.Command, args []string) {
 			Root:   ".",
 		})
 	} else {
-		outputs = append(outputs, kio.ByteWriter{Writer: os.Stdout})
+		outputs = append(outputs, prettywriter.PrintWriter{
+			Writer: os.Stdout,
+			Root:   ".",
+		})
 	}
 
 	err = kio.Pipeline{
