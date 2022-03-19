@@ -39,6 +39,37 @@ func Find(input kio.Reader, filters []kio.Filter, output kio.Writer) {
 	}
 }
 
+func BuildOutputs(summary bool) kio.Writer {
+	var output kio.Writer
+
+	if summary {
+		output = printwriter.PrintWriter{
+			Writer: os.Stdout,
+			Root:   ".",
+		}
+	} else {
+		output = kio.ByteWriter{Writer: os.Stdout}
+	}
+
+	return output
+}
+
+func BuildInputs(cmd *cobra.Command, args []string) kio.Reader {
+	var input kio.Reader
+
+	if len(args) == 0 {
+		input = &kio.ByteReader{Reader: cmd.InOrStdin()}
+	} else {
+		input = kio.LocalPackageReader{
+			PackagePath:       args[0],
+			MatchFilesGlob:    []string{"*.yaml"},
+			PreserveSeqIndent: true,
+			WrapBareSeqNode:   true,
+		}
+	}
+	return input
+}
+
 func BuildFilters(name string, kind string) []kio.Filter {
 	grepFilters := []kio.Filter{&filters.GrepFilter{
 		Path:  []string{"metadata", "name"},
@@ -74,29 +105,5 @@ func List(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	var input kio.Reader
-
-	if len(args) == 0 {
-		input = &kio.ByteReader{Reader: cmd.InOrStdin()}
-	} else {
-		input = kio.LocalPackageReader{
-			PackagePath:       args[0],
-			MatchFilesGlob:    []string{"*.yaml"},
-			PreserveSeqIndent: true,
-			WrapBareSeqNode:   true,
-		}
-	}
-
-	var output kio.Writer
-
-	if summary {
-		output = printwriter.PrintWriter{
-			Writer: os.Stdout,
-			Root:   ".",
-		}
-	} else {
-		output = kio.ByteWriter{Writer: os.Stdout}
-	}
-
-	Find(input, BuildFilters(name, kind), output)
+	Find(BuildInputs(cmd, args), BuildFilters(name, kind), BuildOutputs(summary))
 }
