@@ -27,6 +27,34 @@ var listCmd = &cobra.Command{
 	},
 }
 
+func Find(input kio.Reader, filters []kio.Filter, output kio.Writer) {
+	err := kio.Pipeline{
+		Inputs:  []kio.Reader{input},
+		Outputs: []kio.Writer{output},
+		Filters: filters,
+	}.Execute()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func BuildFilters(name string, kind string) []kio.Filter {
+	grepFilters := []kio.Filter{&filters.GrepFilter{
+		Path:  []string{"metadata", "name"},
+		Value: name,
+	}}
+
+	if kind != "" {
+		grepFilters = append(grepFilters, &filters.GrepFilter{
+			Path:  []string{"kind"},
+			Value: kind,
+		})
+	}
+
+	return grepFilters
+}
+
 func List(cmd *cobra.Command, args []string) {
 	name, err := cmd.Flags().GetString("name")
 
@@ -59,36 +87,16 @@ func List(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	fltrs := []kio.Filter{&filters.GrepFilter{
-		Path:  []string{"metadata", "name"},
-		Value: name,
-	}}
-
-	if kind != "" {
-		fltrs = append(fltrs, &filters.GrepFilter{
-			Path:  []string{"kind"},
-			Value: kind,
-		})
-	}
-
-	var outputs []kio.Writer
+	var output kio.Writer
 
 	if summary {
-		outputs = append(outputs, printwriter.PrintWriter{
+		output = printwriter.PrintWriter{
 			Writer: os.Stdout,
 			Root:   ".",
-		})
+		}
 	} else {
-		outputs = append(outputs, kio.ByteWriter{Writer: os.Stdout})
+		output = kio.ByteWriter{Writer: os.Stdout}
 	}
 
-	err = kio.Pipeline{
-		Inputs:  []kio.Reader{input},
-		Outputs: outputs,
-		Filters: fltrs,
-	}.Execute()
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	Find(input, BuildFilters(name, kind), output)
 }
