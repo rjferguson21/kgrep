@@ -1,5 +1,5 @@
 build:
-	go build -o kpretty main.go
+	go build -o kgrep main.go
 
 install: build
 	mv kpretty $(GOPATH)/bin

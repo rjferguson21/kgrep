@@ -14,7 +14,7 @@ func init() {
 	listCmd.Flags().Bool("summary", false, "use summary list")
 	listCmd.Flags().String("kind", "", "query by kind")
 	listCmd.Flags().String("name", "", "query by name")
-	rootCmd.AddCommand(listCmd)
+	// rootCmd.AddCommand(listCmd)
 }
 
 var listCmd = &cobra.Command{
