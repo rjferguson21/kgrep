@@ -1,4 +1,4 @@
-module github.com/rjferguson21/kpretty
+module github.com/rjferguson21/kgrep
 
 go 1.17
 

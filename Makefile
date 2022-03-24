@@ -2,7 +2,7 @@ build:
 	go build -o kgrep main.go
 
 install: build
-	mv kpretty $(GOPATH)/bin
+	mv kgrep $(GOPATH)/bin
 
 clean:
-	rm -fr kpretty
+	rm -fr kgrep

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/rjferguson21/kpretty/cmd"
+	"github.com/rjferguson21/kgrep/cmd"
 )
 
 func main() {

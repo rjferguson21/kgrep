@@ -15,7 +15,7 @@ type PrintWriter struct {
 
 func (p PrintWriter) Write(nodes []*yaml.RNode) error {
 	for _, v := range nodes {
-		fmt.Println(v.GetKind(), v.GetName())
+		fmt.Fprintf(p.Writer, "%s/%s\n", v.GetKind(), v.GetName())
 	}
 	return nil
 }

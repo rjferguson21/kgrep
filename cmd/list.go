@@ -1,27 +1,35 @@
 package cmd
 
 import (
+	"io"
 	"log"
 	"os"
 
-	"github.com/rjferguson21/kpretty/printwriter"
+	"github.com/rjferguson21/kgrep/printwriter"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/kustomize/kyaml/kio"
 	"sigs.k8s.io/kustomize/kyaml/kio/filters"
 )
 
 func init() {
-	listCmd.Flags().Bool("summary", false, "use summary list")
-	listCmd.Flags().String("kind", "", "query by kind")
-	listCmd.Flags().String("name", "", "query by name")
+	listCmd.Flags().BoolP("summary", "s", false, "use summary list")
+	listCmd.Flags().StringP("kind", "k", "", "query by kind")
+	listCmd.Flags().StringP("name", "n", "", "query by name")
 	// rootCmd.AddCommand(listCmd)
 }
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List the version number of Hugo",
-	Long:  `All software has versions. This is Hugo's`,
-	Args:  cobra.MaximumNArgs(1),
+	Use:   "kgrep [resources.yaml]",
+	Short: "Find kubernetes resources",
+	Long: `Search through a list of kubernetes resources for a specific resource, or resources. For example:
+
+# Search for services within all.yaml
+kgrep --kind Service all.yaml
+
+# Search for a Deployment named foo within helm chart
+helm template chart | kgrep --kind Deployment --name foo
+`,
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		List(cmd, args)
 	},
@@ -39,16 +47,16 @@ func Find(input kio.Reader, filters []kio.Filter, output kio.Writer) {
 	}
 }
 
-func BuildOutputs(summary bool) kio.Writer {
+func BuildOutputs(summary bool, writer io.Writer) kio.Writer {
 	var output kio.Writer
 
 	if summary {
 		output = printwriter.PrintWriter{
-			Writer: os.Stdout,
+			Writer: writer,
 			Root:   ".",
 		}
 	} else {
-		output = kio.ByteWriter{Writer: os.Stdout}
+		output = kio.ByteWriter{Writer: writer}
 	}
 
 	return output
@@ -105,5 +113,8 @@ func List(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	Find(BuildInputs(cmd, args), BuildFilters(name, kind), BuildOutputs(summary))
+	Find(
+		BuildInputs(cmd, args),
+		BuildFilters(name, kind),
+		BuildOutputs(summary, os.Stdout))
 }
