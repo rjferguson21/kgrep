@@ -6,3 +6,6 @@ install: build
 
 clean:
 	rm -fr kgrep
+
+test:
+	go test ./...
