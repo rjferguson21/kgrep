@@ -28,23 +28,17 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "kpretty",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "kgrep",
+	Short: "Find kubernetes resources",
+	Long: `Search through a list of kubernetes resources for a specific resource, or resources. For example:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+kgrep --kind Service all.yaml`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
+	cobra.CheckErr(listCmd.Execute())
 }
 
 func init() {
@@ -54,7 +48,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kpretty.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kgrep.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -71,10 +65,10 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".kpretty" (without extension).
+		// Search config in home directory with name ".kgrep" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".kpretty")
+		viper.SetConfigName(".kgrep")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
