@@ -9,3 +9,11 @@ clean:
 
 test:
 	go test ./...
+
+.PHONY: release-snapshot
+release-snapshot:
+	goreleaser release --snapshot --clean
+
+.PHONY: release-check
+release-check:
+	goreleaser check

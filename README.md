@@ -16,8 +16,24 @@ A powerful command-line tool for searching and filtering Kubernetes resource man
 
 ## Installation
 
+### Using Go Install
+
 ```bash
 go install github.com/rjferguson21/kgrep@latest
+```
+
+### Using Pre-built Binaries
+
+You can download pre-built binaries for your platform from the [releases page](https://github.com/rjferguson21/kgrep/releases).
+
+For example, to download and install the latest release on Linux (x86_64):
+
+```bash
+# Download the latest release
+curl -L https://github.com/rjferguson21/kgrep/releases/latest/download/kgrep_Linux_x86_64.tar.gz | tar xz
+
+# Move the binary to your PATH
+sudo mv kgrep /usr/local/bin/
 ```
 
 ## Usage
