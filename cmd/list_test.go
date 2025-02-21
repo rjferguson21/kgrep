@@ -166,7 +166,7 @@ spec:
 		BuildFilters("", "Service"),
 		BuildOutputs(true, &output))
 
-	want := "Service/nginx\n"
+	want := "\033[34mService\033[0m/\033[32mnginx\033[0m\n"
 	got := output.String()
 
 	if got != want {
@@ -217,7 +217,7 @@ spec:
 		BuildFilters("nginx$", ""),
 		BuildOutputs(true, &output))
 
-	want := "Service/nginx\n"
+	want := "\033[34mService\033[0m/\033[32mnginx\033[0m\n"
 	got := output.String()
 
 	if got != want {
