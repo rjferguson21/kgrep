@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/rjferguson21/kgrep/printwriter"
 	"github.com/spf13/cobra"
@@ -19,15 +20,22 @@ func init() {
 }
 
 var listCmd = &cobra.Command{
-	Use:   "kgrep [resources.yaml]",
+	Use:   "kgrep [kind[/name]]",
 	Short: "Find kubernetes resources",
-	Long: `Search through a list of kubernetes resources for a specific resource, or resources. For example:
+	Long: `Search through a list of kubernetes resources for a specific resource, or resources.
 
-# Search for services within all.yaml
-kgrep --kind Service all.yaml
+Examples:
+  # Search for all Deployments
+  helm template chart | kgrep Deployment
 
-# Search for a Deployment named foo within helm chart
-helm template chart | kgrep --kind Deployment --name foo
+  # Search for a specific Service by name
+  cat manifests.yaml | kgrep Service/nginx
+
+  # Search for any resource named nginx
+  kubectl get all -o yaml | kgrep '*/nginx'
+
+  # Use flags for more control
+  kubectl get all -o yaml | kgrep --kind Pod --name "nginx.*" --summary
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -62,20 +70,8 @@ func BuildOutputs(summary bool, writer io.Writer) kio.Writer {
 	return output
 }
 
-func BuildInputs(cmd *cobra.Command, args []string) kio.Reader {
-	var input kio.Reader
-
-	if len(args) == 0 {
-		input = &kio.ByteReader{Reader: cmd.InOrStdin()}
-	} else {
-		input = kio.LocalPackageReader{
-			PackagePath:       args[0],
-			MatchFilesGlob:    []string{"*.yaml"},
-			PreserveSeqIndent: true,
-			WrapBareSeqNode:   true,
-		}
-	}
-	return input
+func BuildInputs(cmd *cobra.Command) kio.Reader {
+	return &kio.ByteReader{Reader: cmd.InOrStdin()}
 }
 
 func BuildFilters(name string, kind string) []kio.Filter {
@@ -96,25 +92,35 @@ func BuildFilters(name string, kind string) []kio.Filter {
 
 func List(cmd *cobra.Command, args []string) {
 	name, err := cmd.Flags().GetString("name")
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	summary, err := cmd.Flags().GetBool("summary")
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	kind, err := cmd.Flags().GetString("kind")
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Parse positional argument (Kind/Name)
+	if len(args) == 1 {
+		parts := strings.SplitN(args[0], "/", 2)
+		// Positional kind (if not overridden by flag), "*" means any
+		if kind == "" && parts[0] != "" && parts[0] != "*" {
+			kind = parts[0]
+		}
+		// Positional name (if present and not overridden by flag), "*" means any
+		if len(parts) == 2 && name == "" && parts[1] != "*" {
+			name = parts[1]
+		}
+	}
+
 	Find(
-		BuildInputs(cmd, args),
+		BuildInputs(cmd),
 		BuildFilters(name, kind),
 		BuildOutputs(summary, os.Stdout))
 }
