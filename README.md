@@ -60,14 +60,14 @@ helm template my-chart | kgrep --kind Deployment --name frontend
 # Find resources in remote manifests
 curl -s https://raw.githubusercontent.com/istio/istio/release-1.13/samples/bookinfo/platform/kube/bookinfo.yaml | kgrep -k Deployment -n reviews-v3
 
-# List all resources of multiple kinds
-kgrep --kind "Service,Deployment" cluster-resources.yaml
+# List all resources of multiple kinds (using regex)
+kgrep --kind "Service|Deployment" cluster-resources.yaml
 ```
 
 ### Command Line Options
 
-- `-k, --kind`: Filter by resource kind (e.g., Deployment, Service)
-- `-n, --name`: Filter by resource name
+- `-k, --kind`: Filter by resource kind (supports regex, e.g., `Deployment`, `Service|ConfigMap`)
+- `-n, --name`: Filter by resource name (supports regex)
 - `-s, --summary`: Display a summary of resources
 - `-h, --help`: Show help message
 
