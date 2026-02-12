@@ -38,38 +38,70 @@ sudo mv kgrep /usr/local/bin/
 
 ## Usage
 
-### Basic Examples
+`kgrep` reads Kubernetes manifests from stdin and filters by kind and/or name.
+
+### Kind/Name Syntax
+
+The fastest way to filter resources is with the positional `Kind/Name` syntax:
 
 ```bash
-# Search for Services within a YAML file
-kgrep --kind Service all.yaml
+# Search for all Deployments
+helm template my-chart | kgrep Deployment
 
-# Search for a specific Deployment by name
-kgrep --kind Deployment --name nginx-deployment manifests.yaml
+# Search for a specific Service by name
+cat manifests.yaml | kgrep Service/nginx
 
-# Generate a summary of all resources in a file
-kgrep --summary manifests.yaml
+# Search for any resource named "nginx" (wildcard kind)
+kubectl get all -o yaml | kgrep '*/nginx'
+
+# Explicit wildcard name (same as just "Service")
+cat manifests.yaml | kgrep 'Service/*'
 ```
 
-### Advanced Usage
+### Using Flags
+
+Flags provide more control and support regex patterns:
+
+```bash
+# Filter by kind and name
+helm template my-chart | kgrep --kind Deployment --name frontend
+
+# Use regex to match multiple kinds
+kubectl get all -o yaml | kgrep --kind "Service|Deployment"
+
+# Use regex to match name patterns
+cat manifests.yaml | kgrep --kind Pod --name "nginx.*"
+
+# Generate a summary of resources
+helm template my-chart | kgrep -s
+```
+
+### Examples
 
 ```bash
 # Search within Helm chart output
-helm template my-chart | kgrep --kind Deployment --name frontend
+helm template my-chart | kgrep Deployment/frontend
 
 # Find resources in remote manifests
-curl -s https://raw.githubusercontent.com/istio/istio/release-1.13/samples/bookinfo/platform/kube/bookinfo.yaml | kgrep -k Deployment -n reviews-v3
+curl -s https://raw.githubusercontent.com/.../bookinfo.yaml | kgrep Deployment/reviews-v3
 
-# List all resources of multiple kinds (using regex)
-kgrep --kind "Service|Deployment" cluster-resources.yaml
+# List all Deployments with summary output
+kubectl get all -o yaml | kgrep Deployment -s
 ```
 
 ### Command Line Options
 
-- `-k, --kind`: Filter by resource kind (supports regex, e.g., `Deployment`, `Service|ConfigMap`)
+```
+kgrep [kind[/name]] [flags]
+```
+
+- `kind[/name]`: Positional filter using Kind/Name syntax (use `*` as wildcard)
+- `-k, --kind`: Filter by resource kind (supports regex)
 - `-n, --name`: Filter by resource name (supports regex)
 - `-s, --summary`: Display a summary of resources
 - `-h, --help`: Show help message
+
+Flags override positional arguments when both are provided.
 
 ## Contributing
 
